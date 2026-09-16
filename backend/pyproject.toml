@@ -58,7 +58,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["gateway", "knowledge", "observability", "orchestration"]
+packages = ["app", "gateway", "knowledge", "observability", "orchestration"]
 
 [tool.ruff]
 line-length = 88

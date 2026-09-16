@@ -3,6 +3,9 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, status
 
 
+from app.core.config import settings
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup logic (e.g., database connections, cache, model loading)
@@ -11,8 +14,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(
-    title="Enterprise AI Platform - API Gateway",
-    version="0.1.0",
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description=settings.DESCRIPTION,
     lifespan=lifespan,
 )
 
