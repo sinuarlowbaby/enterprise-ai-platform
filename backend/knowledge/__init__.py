@@ -1,7 +1,8 @@
 """
 Knowledge & RAG Package.
 
-Exposes document parsers, chunking splitters, and embedding models.
+Exposes document parsers, chunking splitters, embedding models,
+and tenant-isolated vector search.
 """
 
 from knowledge.chunking.splitter import Chunk, RecursiveTokenSplitter
@@ -12,6 +13,13 @@ from knowledge.parsers.markdown import MarkdownParser
 from knowledge.parsers.pdf import PyMuPDFParser
 from knowledge.parsers.text import TextParser
 from knowledge.retrieval.embedder import NomicEmbedder, get_embedder
+from knowledge.retrieval.exceptions import (
+    InvalidVectorDimensionError,
+    MissingTenantContextError,
+    TenantMismatchError,
+    TenantSecurityError,
+)
+from knowledge.retrieval.vector_search import VectorSearchResult, VectorSearchService
 
 __all__ = [
     # Chunking
@@ -27,7 +35,14 @@ __all__ = [
     "MarkdownParser",
     "TextParser",
     "ParserFactory",
-    # Embedder
+    # Embedder & Retrieval
     "NomicEmbedder",
     "get_embedder",
+    "VectorSearchService",
+    "VectorSearchResult",
+    # Security
+    "TenantSecurityError",
+    "MissingTenantContextError",
+    "TenantMismatchError",
+    "InvalidVectorDimensionError",
 ]
