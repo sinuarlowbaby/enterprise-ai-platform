@@ -130,7 +130,7 @@ Segmented text passages with dense vector representations and arbitrary JSONB me
 | `document_id` | `UUID` | `NOT NULL`, `REFERENCES documents(id) ON DELETE CASCADE`, Indexed | Parent document reference |
 | `chunk_index` | `INTEGER` | `NOT NULL` | Sequence order index |
 | `content` | `TEXT` | `NOT NULL` | Passage text content |
-| `embedding` | `VECTOR(768)` | `NULL`, HNSW Index | 768-dimensional dense vector (`sentence-transformers/all-mpnet-base-v2`) |
+| `embedding` | `VECTOR(768)` | `NULL`, HNSW Index | 768-dimensional dense vector (`nomic-ai/nomic-embed-text-v1.5`) |
 | `metadata` | `JSONB` | `NOT NULL`, `DEFAULT '{}'::jsonb`, GIN Index | Passage metadata (headers, page, coordinates) |
 | `created_at` | `TIMESTAMPTZ` | `NOT NULL`, `DEFAULT now()` | Chunk generation timestamp |
 
