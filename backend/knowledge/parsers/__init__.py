@@ -1,23 +1,18 @@
 """
-Knowledge & RAG Package.
+Document Parsers Package.
 
-Exposes document parsers, chunking splitters, and embedding models.
+Provides layout-aware parsers for PDF, DOCX, Markdown, and TXT with
+automatic metadata and section hierarchy extraction.
 """
 
-from knowledge.chunking.splitter import Chunk, RecursiveTokenSplitter
 from knowledge.parsers.base import BaseParser, BlockType, DocumentBlock, ParsedDocument
 from knowledge.parsers.docx import DocxParser
 from knowledge.parsers.factory import ParserFactory
 from knowledge.parsers.markdown import MarkdownParser
 from knowledge.parsers.pdf import PyMuPDFParser
 from knowledge.parsers.text import TextParser
-from knowledge.retrieval.embedder import NomicEmbedder, get_embedder
 
 __all__ = [
-    # Chunking
-    "Chunk",
-    "RecursiveTokenSplitter",
-    # Parsers
     "BaseParser",
     "BlockType",
     "DocumentBlock",
@@ -27,7 +22,4 @@ __all__ = [
     "MarkdownParser",
     "TextParser",
     "ParserFactory",
-    # Embedder
-    "NomicEmbedder",
-    "get_embedder",
 ]
