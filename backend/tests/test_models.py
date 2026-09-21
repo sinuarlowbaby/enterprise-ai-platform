@@ -7,7 +7,7 @@ import uuid
 
 import pytest
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.schema import CreateTable
+from sqlalchemy.schema import CreateIndex, CreateTable
 
 from app.core.config import settings
 from app.db.base import Base
@@ -196,3 +196,35 @@ def test_ddl_compilation_with_postgresql_dialect():
     chunk_ddl = str(CreateTable(Base.metadata.tables["document_chunks"]).compile(dialect=dialect))
     assert "VECTOR(768)" in chunk_ddl
     assert "JSONB" in chunk_ddl
+
+
+def test_document_chunk_specific_indexes():
+    """Verify explicit B-Tree partition index on tenant_id and HNSW vector index."""
+    dialect = postgresql.dialect()
+    table = Base.metadata.tables["document_chunks"]
+    indexes = {idx.name: idx for idx in table.indexes}
+
+    # 1. B-Tree index on tenant_id for partition filtering
+    assert "ix_document_chunks_tenant_id" in indexes
+    tenant_idx = indexes["ix_document_chunks_tenant_id"]
+    assert [c.name for c in tenant_idx.columns] == ["tenant_id"]
+    assert tenant_idx.dialect_options["postgresql"]["using"] == "btree"
+    tenant_idx_ddl = str(CreateIndex(tenant_idx).compile(dialect=dialect))
+    assert "USING btree (tenant_id)" in tenant_idx_ddl
+
+    # 2. HNSW index on embedding (vector_cosine_ops) with m=16, ef_construction=64
+    assert "ix_document_chunks_embedding_hnsw" in indexes
+    hnsw_idx = indexes["ix_document_chunks_embedding_hnsw"]
+    assert [c.name for c in hnsw_idx.columns] == ["embedding"]
+    assert hnsw_idx.dialect_options["postgresql"]["using"] == "hnsw"
+    assert hnsw_idx.dialect_options["postgresql"]["with"] == {
+        "m": 16,
+        "ef_construction": 64,
+    }
+    assert hnsw_idx.dialect_options["postgresql"]["ops"] == {
+        "embedding": "vector_cosine_ops",
+    }
+    hnsw_idx_ddl = str(CreateIndex(hnsw_idx).compile(dialect=dialect))
+    assert "USING hnsw (embedding vector_cosine_ops)" in hnsw_idx_ddl
+    assert "WITH (m = 16, ef_construction = 64)" in hnsw_idx_ddl
+

@@ -135,13 +135,18 @@ Segmented text passages with dense vector representations and arbitrary JSONB me
 | `created_at` | `TIMESTAMPTZ` | `NOT NULL`, `DEFAULT now()` | Chunk generation timestamp |
 
 #### Specialized Indexes
-- **Vector Search Index**:
+- **Multi-Tenant Partition Filtering Index (B-Tree)**:
+  ```sql
+  CREATE INDEX ix_document_chunks_tenant_id
+  ON document_chunks USING btree (tenant_id);
+  ```
+- **Vector Semantic Search Index (HNSW)**:
   ```sql
   CREATE INDEX ix_document_chunks_embedding_hnsw
   ON document_chunks USING hnsw (embedding vector_cosine_ops)
   WITH (m = 16, ef_construction = 64);
   ```
-- **Metadata Filtering Index**:
+- **Metadata Filtering Index (GIN)**:
   ```sql
   CREATE INDEX ix_document_chunks_metadata_gin
   ON document_chunks USING gin (metadata);

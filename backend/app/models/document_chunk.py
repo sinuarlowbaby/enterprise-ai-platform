@@ -39,13 +39,11 @@ class DocumentChunk(Base):
         UUID(as_uuid=True),
         ForeignKey("tenants.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     document_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("documents.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     chunk_index: Mapped[int] = mapped_column(
         Integer,
@@ -96,9 +94,13 @@ class DocumentChunk(Base):
     )
 
     __table_args__ = (
+        # Explicit B-Tree index on tenant_id for strict multi-tenant partition filtering
+        Index("ix_document_chunks_tenant_id", "tenant_id", postgresql_using="btree"),
+        Index("ix_document_chunks_document_id", "document_id", postgresql_using="btree"),
         Index("ix_document_chunks_tenant_doc", "tenant_id", "document_id"),
         Index("ix_document_chunks_doc_index", "document_id", "chunk_index"),
         Index("ix_document_chunks_metadata_gin", "metadata", postgresql_using="gin"),
+        # HNSW vector index on embedding (vector_cosine_ops) with m=16, ef_construction=64
         Index(
             "ix_document_chunks_embedding_hnsw",
             "embedding",

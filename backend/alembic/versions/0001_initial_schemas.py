@@ -188,6 +188,7 @@ def upgrade() -> None:
         "document_chunks",
         ["tenant_id"],
         unique=False,
+        postgresql_using="btree",
     )
     op.create_index(
         op.f("ix_document_chunks_document_id"),
