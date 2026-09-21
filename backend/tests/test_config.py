@@ -106,7 +106,9 @@ def test_observability_and_guardrail_defaults():
     assert config.ENABLE_PII_ANONYMIZATION is True
     assert config.PRESIDIO_SCORE_THRESHOLD == 0.6
     assert config.DEFAULT_LLM_MODEL == "gpt-4o"
-    assert config.DEFAULT_EMBEDDING_MODEL == "sentence-transformers/all-mpnet-base-v2"
+    assert config.DEFAULT_EMBEDDING_MODEL == "nomic-ai/nomic-embed-text-v1.5"
     assert config.EMBEDDING_DIMENSION == 768
+    assert config.NOMIC_EMBED_DOCUMENT_PREFIX == "search_document: "
+    assert config.NOMIC_EMBED_QUERY_PREFIX == "search_query: "
     assert config.RATE_LIMIT_PER_MINUTE == 60
     assert config.DEFAULT_TENANT_MONTHLY_TOKEN_BUDGET == 1_000_000

@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS document_chunks (
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS ix_document_chunks_tenant_id ON document_chunks (tenant_id);
+CREATE INDEX IF NOT EXISTS ix_document_chunks_tenant_id ON document_chunks USING btree (tenant_id);
 CREATE INDEX IF NOT EXISTS ix_document_chunks_document_id ON document_chunks (document_id);
 CREATE INDEX IF NOT EXISTS ix_document_chunks_tenant_doc ON document_chunks (tenant_id, document_id);
 CREATE INDEX IF NOT EXISTS ix_document_chunks_doc_index ON document_chunks (document_id, chunk_index);

@@ -236,12 +236,20 @@ class Settings(BaseSettings):
         description="Default LLM model identifier",
     )
     DEFAULT_EMBEDDING_MODEL: str = Field(
-        default="sentence-transformers/all-mpnet-base-v2",
-        description="Default text embedding model identifier",
+        default="nomic-ai/nomic-embed-text-v1.5",
+        description="Default text embedding model identifier (Nomic Embed Text v1.5)",
     )
     EMBEDDING_DIMENSION: int = Field(
         default=768,
-        description="Dimension size of default embeddings",
+        description="Dimension size of default embeddings (768 for nomic-embed-text-v1.5)",
+    )
+    NOMIC_EMBED_DOCUMENT_PREFIX: str = Field(
+        default="search_document: ",
+        description="Prefix required for document passages in nomic-embed-text",
+    )
+    NOMIC_EMBED_QUERY_PREFIX: str = Field(
+        default="search_query: ",
+        description="Prefix required for search queries in nomic-embed-text",
     )
 
     # =========================================================================
