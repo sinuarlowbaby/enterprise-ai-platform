@@ -1,5 +1,12 @@
 import logging
+from pathlib import Path
 import sys
+
+# Ensure backend root is on sys.path when running `python app/main.py` directly
+backend_dir = str(Path(__file__).resolve().parent.parent)
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import AsyncGenerator
