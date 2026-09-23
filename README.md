@@ -1,30 +1,33 @@
-# Enterprise AI Platform
+# 🌐 Enterprise AI Platform
 
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg?logo=python&logoColor=white)](https://www.python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue.svg?logo=python&logoColor=white)](https://www.python.org)
-[![React](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite%20%2B%20TS-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
-[![Qdrant](https://img.shields.io/badge/Vector%20DB-Qdrant%20%2B%20pgvector-red.svg?logo=qdrant&logoColor=white)](https://qdrant.tech)
+[![uv](https://img.shields.io/badge/Package%20Manager-uv-DE5FE9.svg?logo=astral&logoColor=white)](https://docs.astral.sh/uv/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com)
+[![Qdrant](https://img.shields.io/badge/Vector%20DB-Qdrant-red.svg?logo=qdrant&logoColor=white)](https://qdrant.tech)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%2016%20%2B%20pgvector-336791.svg?logo=postgresql&logoColor=white)](https://github.com/pgvector/pgvector)
+[![Redis](https://img.shields.io/badge/Cache-Redis%207-DC382D.svg?logo=redis&logoColor=white)](https://redis.io)
 [![Langfuse](https://img.shields.io/badge/Observability-Langfuse-orange.svg)](https://langfuse.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A production-grade, multi-tenant enterprise AI system featuring isolated Hybrid RAG, LangGraph multi-agent orchestration, PII guardrails, real-time observability, and fine-tuning pipelines.
+A production-grade, multi-tenant enterprise AI system featuring isolated Hybrid RAG, multi-agent orchestration, PII guardrails, real-time observability, and fine-tuning pipelines.
 
 ---
 
-## 🏛️ Core Architecture Pillars
+## 🏛️ System Architecture
 
 ```mermaid
 flowchart TD
     subgraph Client["Client Tier"]
         UI["React + TypeScript UI"]
-        API_REQ["API Clients / SDK"]
+        API_REQ["API Clients / External Systems"]
     end
 
-    subgraph Gateway["API Gateway & Middleware"]
-        GW["FastAPI Gateway"]
-        AUTH["Tenant Auth / API Keys"]
-        GUARD["Guardrails (Presidio PII + Jailbreak Defense)"]
-        ROUTER["Semantic Intent Router"]
+    subgraph Backend["FastAPI Backend Tier"]
+        GW["FastAPI App (Lifespan Managed)"]
+        CONF["Config Boot Validator (.env Checker)"]
+        HEALTH["Health Check (/health)"]
+        CHAT["Chat Router (/chat & /api/v1/chat)"]
     end
 
     subgraph Core["Execution Engines"]
@@ -35,39 +38,33 @@ flowchart TD
     subgraph Storage["Databases & Infrastructure"]
         PG["PostgreSQL 16 + pgvector"]
         QD["Qdrant Vector DB"]
-        RD["Redis 7 (State & Rate Limits)"]
+        RD["Redis 7 (State & Cache)"]
         LF["Langfuse Tracing & Metrics"]
     end
 
     UI --> GW
     API_REQ --> GW
-    GW --> AUTH --> GUARD --> ROUTER
-    ROUTER -->|Internal Knowledge| RAG
-    ROUTER -->|Complex Workflows| AGENTS
+    GW --> CONF
+    GW --> HEALTH
+    GW --> CHAT
+    CHAT --> RAG
+    CHAT --> AGENTS
     RAG --> QD
     RAG --> PG
     AGENTS --> RD
-    GW -.->|Traces & Costs| LF
+    GW -.->|Traces & Telemetry| LF
 ```
 
-### 1. Enterprise Multi-Tenant RAG
-- **Strict Tenant Isolation**: Vector indexing and partition filtering ensuring zero cross-tenant data leakage.
-- **Hybrid Retrieval**: Combines Dense vector embeddings with Sparse keyword search (BM25 / `tsvector`) using Reciprocal Rank Fusion (RRF).
-- **Cross-Encoder Re-Ranking**: Two-stage retrieval scoring to maximize context precision while minimizing context window cost.
+---
 
-### 2. Multi-Agent Orchestration (LangGraph)
-- **Specialized Worker Topology**: Planner, RAG Specialist, Code/SQL Analytics, and Critic/Reviewer nodes.
-- **State Persistence**: Redis and PostgreSQL checkpointing for durable long-running workflows.
-- **Human-in-the-Loop**: Interactive approval gates before critical actions or external API writes.
+## 🚀 Key Features
 
-### 3. LLM Observability & Guardrails Platform
-- **Real-Time Guardrails**: Microsoft Presidio for automated PII anonymization/redaction and prompt injection detection.
-- **Observability & Tracing**: Native Langfuse integration tracking tokens, dollar costs, latency, and full execution traces.
-- **Multi-Tenant Rate Limiting & Quotas**: Sliding-window rate limiters and monthly token budgets per tenant.
-
-### 4. Continuous Evaluation & Domain Fine-Tuning
-- **Evaluation Pipeline**: Automated RAG benchmark assessment (Faithfulness, Answer Relevance, Context Recall) powered by Ragas.
-- **Fine-Tuning**: Dataset curation from production traces and parameter-efficient fine-tuning (PEFT / QLoRA) with automatic cloud fallback.
+- **FastAPI Core with Async Lifespan**: Structured startup verification and graceful connection shutdown.
+- **Fail-Fast Boot Protection**: Halts system startup with diagnostic errors if `.env` or required configurations are missing.
+- **Operational Health Endpoint**: Standardized `/health` endpoint for Kubernetes probes and load balancers.
+- **Chat Subsystem**: Modular chat routing mounted at `/chat` and `/api/v1/chat` with structured Pydantic schemas.
+- **Blazing Fast `uv` Toolchain**: Instant dependency resolution, lockfile synchronization, and Python 3.12 environment management.
+- **Full Infrastructure Stack**: Containerized PostgreSQL 16 (`pgvector`), Qdrant, Redis 7, RedisInsight, and Langfuse.
 
 ---
 
@@ -75,149 +72,204 @@ flowchart TD
 
 ```text
 enterprise-ai-platform/
-├── backend/                        # FastAPI Python backend
-│   ├── gateway/                    # API routing, auth & middleware
-│   ├── knowledge/                  # Ingestion, parsers, hybrid retrieval & rerankers
-│   ├── orchestration/              # LangGraph multi-agent nodes & state graphs
-│   ├── observability/              # Presidio guardrails, telemetry & Langfuse integration
-│   ├── pyproject.toml              # PEP 621 dependencies (uv-managed)
-│   └── .venv/                      # Python virtual environment
-├── frontend/                       # Vite + React + TypeScript web app
-│   ├── src/                        # UI components, state & API clients
-│   └── package.json
-├── docker-compose.yml              # Local infrastructure container stack
-├── init-db.sql                     # Postgres database & pgvector initialization
-├── .env.example                    # Environment variable template
-└── README.md
+├── backend/
+│   ├── app/
+│   │   ├── core/
+│   │   │   ├── __init__.py
+│   │   │   └── config.py              # Strict environment boot verification & Settings
+│   │   ├── routers/
+│   │   │   ├── __init__.py
+│   │   │   └── chat.py                # Chat router (GET /status, POST /)
+│   │   ├── router/                    # Compatibility alias for app.router
+│   │   │   ├── __init__.py
+│   │   │   └── chat.py
+│   │   ├── __init__.py
+│   │   └── main.py                    # FastAPI entrypoint, lifespan & /health
+│   ├── tests/
+│   │   ├── test_app.py                # Health, chat & lifespan tests
+│   │   └── test_config.py             # Boot halt & configuration validation tests
+│   ├── pyproject.toml                 # Modern PEP 621 dependencies managed by uv
+│   └── README.md
+├── docker-compose.yml                  # Infrastructure services (Postgres, Qdrant, Redis, Langfuse)
+├── .env.example                       # Environment variables template
+├── .env                               # Active configuration file
+└── README.md                          # Primary platform documentation
 ```
 
 ---
 
-## 🛠️ Technology Stack
-
-| Layer | Technologies |
-| :--- | :--- |
-| **Backend** | Python 3.12, FastAPI, Pydantic v2, SQLAlchemy (asyncio), AsyncPG |
-| **Package Management** | `uv` / PEP 621 `pyproject.toml` |
-| **Databases** | PostgreSQL 16 (`pgvector`), Qdrant Vector DB, Redis 7 (Alpine) |
-| **Agents & RAG** | LangGraph, LangChain, Sentence-Transformers, PyPDF |
-| **Security & Guardrails** | Microsoft Presidio (Analyzer & Anonymizer), Custom Jailbreak Classifiers |
-| **Observability** | Langfuse, RedisInsight, Prometheus |
-| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS / Vanilla CSS |
-
----
-
-## 🚀 Getting Started
+## 🛠️ Getting Started
 
 ### Prerequisites
-- **Docker Desktop** installed and running.
-- **Python 3.11+** installed.
-- **uv** (recommended) or standard `pip`.
-- **Node.js 18+** for the frontend.
+
+- **Python 3.12**
+- **[uv](https://docs.astral.sh/uv/)** package manager:
+  ```powershell
+  # Install uv on Windows
+  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+  ```
+- **Docker Desktop** (for storage and observability containers)
 
 ---
 
-### Step 1: Clone and Configure Environment
+### Step 1: Environment Configuration
 
 ```bash
 # Clone the repository
 git clone https://github.com/sinuarlowbaby/enterprise-ai-platform.git
 cd enterprise-ai-platform
 
-# Create local .env file from template
+# Copy environment template if .env does not exist
 cp .env.example .env
 ```
 
-Review [`.env`](.env) and customize keys if necessary.
+> [!IMPORTANT]
+> The backend verifies the existence of `.env` on boot. If `.env` or critical environment variables (`DATABASE_URL`, `REDIS_URL`, `POSTGRES_DB`) are missing, the server will intentionally halt startup with a diagnostic error.
 
 ---
 
 ### Step 2: Spin Up Infrastructure Containers
 
-Ensure Docker Desktop is open, then run:
+Ensure Docker Desktop is running, then start the container stack:
 
 ```bash
 docker compose up -d
 ```
 
-Verify that all containers are healthy:
+Verify container status:
 ```bash
 docker compose ps
 ```
 
-#### Available Services & Consoles
-
-| Service | Address | Credentials / Info |
+| Service | Address | Notes |
 | :--- | :--- | :--- |
-| **Qdrant Dashboard** | [http://localhost:6333/dashboard](http://localhost:6333/dashboard) | Web UI for vector collections |
-| **RedisInsight** | [http://localhost:5540](http://localhost:5540) | Redis GUI (Host: `redis`, Port: `6379`, Pass: `redispassword`) |
-| **Langfuse UI** | [http://localhost:3000](http://localhost:3000) | Tracing, evaluations & cost monitoring |
-| **PostgreSQL** | `localhost:5432` | User: `postgres`, Pass: `postgres`, DB: `app_db` |
+| **PostgreSQL 16** | `localhost:5432` | Relational & pgvector storage (`app_db`) |
+| **Qdrant Vector DB** | [http://localhost:6333/dashboard](http://localhost:6333/dashboard) | Dedicated vector engine & Web UI |
+| **Redis 7** | `localhost:6379` | Agent checkpointing & caching |
+| **RedisInsight** | [http://localhost:5540](http://localhost:5540) | Redis visual management UI |
+| **Langfuse** | [http://localhost:3000](http://localhost:3000) | Observability, traces & cost tracking |
 
 ---
 
-### Step 3: Set Up Backend
+### Step 3: Backend Setup with `uv` (Python 3.12)
+
+Navigate to the `backend/` directory:
 
 ```bash
 cd backend
+```
 
-# Create virtual environment (if not already created)
-uv venv
+#### 1. Create Python 3.12 Virtual Environment
 
-# Activate virtual environment
-# On Windows (PowerShell):
-.venv\Scripts\Activate.ps1
-# On Windows (CMD):
-.venv\Scripts\activate.bat
-# On Linux/macOS:
-source .venv/bin/activate
+```powershell
+uv venv --python 3.12 .venv
+```
 
-# Install dependencies in editable mode
-uv pip install -e .
+#### 2. Activate Virtual Environment
 
-# (Optional) Include dev packages:
+- **Windows PowerShell**:
+  ```powershell
+  .venv\Scripts\Activate.ps1
+  ```
+- **Windows CMD**:
+  ```cmd
+  .venv\Scripts\activate.bat
+  ```
+- **Linux / macOS**:
+  ```bash
+  source .venv/bin/activate
+  ```
+
+#### 3. Install Dependencies
+
+Using `uv sync`:
+```powershell
+uv sync --all-extras
+```
+
+Or using `uv pip`:
+```powershell
 uv pip install -e ".[dev]"
 ```
 
-Start the backend development server:
+---
 
-```bash
-uvicorn gateway.middleware.main:app --reload --port 8000
+### Step 4: Run Development Server
+
+```powershell
+# Run with hot reload enabled
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-FastAPI Interactive Documentation is now live at:
-- Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
-- ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+Once running, access the interactive API docs:
+- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+- **Health Check**: [http://localhost:8000/health](http://localhost:8000/health)
 
 ---
 
-### Step 4: Set Up Frontend
+### Step 5: Run Automated Tests
 
-```bash
-cd ../frontend
+Execute the test suite to verify configuration checks, router endpoints, and lifespan execution:
 
-# Install dependencies
-npm install
-
-# Start Vite development server
-npm run dev
+```powershell
+uv run pytest -v
 ```
-
-The frontend dashboard will be available at [http://localhost:5173](http://localhost:5173).
 
 ---
 
-## 🗺️ Roadmap & Milestones
+## 📡 Core API Endpoints
 
-- [x] **Phase 0: Infrastructure & Core Scaffold** (PostgreSQL/pgvector, Qdrant, Redis, Langfuse, `pyproject.toml`)
-- [ ] **Phase 1: Multi-Tenant Hybrid RAG Engine** (Parsers, Chunking, Dense + BM25, Cross-Encoder Re-ranking)
-- [ ] **Phase 2: Guardrails & Query Router** (Presidio PII Anonymizer, Jailbreak Shield, Semantic Intent Router)
-- [ ] **Phase 3: Multi-Agent Orchestration** (LangGraph Planner, Worker Nodes, Checkpointing & HITL)
-- [ ] **Phase 4: Telemetry & Continuous Evaluation** (Langfuse integration, Token/Cost accounting, Ragas evals)
-- [ ] **Phase 5: Fine-Tuning Pipeline** (Dataset curation from production logs, QLoRA fine-tuning, Cloud fallback)
-- [ ] **Phase 6: Auth, Quotas & Dashboard UI** (API Key management, Sliding window rate limiter, React frontend)
+### 1. System Health
+```http
+GET /health
+```
+**Response:**
+```json
+{
+  "status": "healthy",
+  "service": "Enterprise AI Platform",
+  "environment": "development",
+  "version": "0.1.0",
+  "timestamp": "2026-09-24T00:00:00.000000+00:00"
+}
+```
+
+### 2. Chat Service Status
+```http
+GET /chat/status
+```
+**Response:**
+```json
+{
+  "service": "chat",
+  "status": "ready",
+  "timestamp": "2026-09-24T00:00:00.000000+00:00"
+}
+```
+
+### 3. Send Chat Query
+```http
+POST /chat
+Content-Type: application/json
+
+{
+  "message": "Hello, is the Enterprise AI system online?",
+  "conversation_id": "session-001"
+}
+```
+**Response:**
+```json
+{
+  "conversation_id": "session-001",
+  "reply": "Echo / Acknowledged: 'Hello, is the Enterprise AI system online?'. Enterprise AI chat service is operational.",
+  "timestamp": "2026-09-24T00:00:00.000000+00:00",
+  "status": "success"
+}
+```
 
 ---
 
 ## 📄 License
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

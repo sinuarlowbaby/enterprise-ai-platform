@@ -1,1 +1,1 @@
-"""Enterprise AI Platform - Application Package."""
+"""Enterprise AI Backend App."""
